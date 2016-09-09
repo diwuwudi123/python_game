@@ -5,14 +5,18 @@ from pygame.locals import *
 from gameRole import *
 import random
 
+
 # 初始化游戏
 pygame.init()
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pygame.display.set_mode((SCREEN_WIDTH, 600))
 pygame.display.set_caption('飞机大战')
 
 # 载入背景图
 background = pygame.image.load('resources/image/background.png').convert()
-plane_img = pygame.image.load('resources/image/shoot.png')
+game_over = pygame.image.load('resources/image/gameover.png')
+
+filename = 'resources/image/shoot.png'
+plane_img = pygame.image.load(filename)
 
 # 设置玩家相关参数
 player_rect = []
@@ -24,7 +28,8 @@ player_rect.append(pygame.Rect(330, 498, 102, 126))
 player_rect.append(pygame.Rect(432, 624, 102, 126))
 
 #初始化玩家位置
-player = Player(plane_img, player_rect, (200, 600))
+player_pos = [200, 600]
+player = Player(plane_img, player_rect, player_pos)
 
 # 定义子弹对象使用的surface相关参数
 bullet_rect = pygame.Rect(1004, 987, 9, 21)
@@ -51,10 +56,12 @@ player_down_index = 16
 
 score = 0
 
+clock = pygame.time.Clock()
+
 font = pygame.font.Font('xingkai.ttf', 20)
 while True:
     # 控制游戏最大帧率为60
-    pygame.time.Clock().tick(60)
+    clock.tick(60)
 
     # 控制发射子弹频率,并发射子弹
     if not player.is_hit:
@@ -110,7 +117,11 @@ while True:
         screen.blit(player.image[player.img_index], player.rect)
         player_down_index += 1
         if player_down_index > 47:
-            break
+            #绘制gameover
+            screen.blit(game_over, (0, 0))
+            runing = pygame.event.wait()
+            if runing.type == pygame.QUIT:
+                exit()
     # 绘制击毁动画
     for enemy_down in enemies_down:
         if enemy_down.down_index > 7:
@@ -130,11 +141,14 @@ while True:
     text_rect.centerx = screen.get_rect().centerx
     text_rect.centery = screen.get_rect().centery + 24
     screen.blit(text_content, (0,0))
+
     # 更新屏幕
     pygame.display.update()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            exit()     
+            exit()
+            
     # 监听键盘事件
     key_pressed = pygame.key.get_pressed()
     # 若玩家被击中，则无效
